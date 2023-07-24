@@ -11,10 +11,10 @@ from htmlTemplates import css, bot_template, user_template
 import os
 
 #Azure Details:
-os.environ["OPENAI_API_TYPE"] = "azure"
-os.environ["OPENAI_API_BASE"] = "https://bradsolopenai.openai.azure.com/"
-os.environ["OPENAI_API_KEY"] = "b076f4dc36594057a7b1b2b8dd7afffe"
-os.environ["OPENAI_API_VERSION"] = "2023-03-15-preview"
+OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
+OPENAI_API_BASE = os.getenv("OPENAI_API_BASE")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
 
 def get_pdf_text(pdf_docs):
     text = ""
