@@ -2,4 +2,3 @@ PyPDF2
 langchain
 openai
 tiktoken
-faiss
