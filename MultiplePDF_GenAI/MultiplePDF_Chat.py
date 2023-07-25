@@ -10,11 +10,17 @@ from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 import os
 
-#Azure Details:
+
+
+# Azure Details:
+
 OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
+
+
+
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -45,22 +51,24 @@ def get_vectorstore(text_chunks):
 
 
 def get_conversation_chain(vectorstore):
-    llm = AzureChatOpenAI(deployment_name="bradsol-openai-test",model_name="gpt-35-turbo")
-    print(llm)
+    llm = AzureChatOpenAI(deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm,retriever=vectorstore.as_retriever(), memory=memory)
+    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=vectorstore.as_retriever(),
+                                                               memory=memory)
     return conversation_chain
 
 
 def handle_userinput(user_question):
     response = st.session_state.conversation({'question': user_question})
     st.session_state.chat_history = response['chat_history']
+    print(st.session_state.chat_history)
     for i, message in enumerate(st.session_state.chat_history):
-        print(message)
+
         if i % 2 == 0:
             st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
         else:
             st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+
 
 
 def main():
@@ -76,15 +84,16 @@ def main():
         st.session_state.chat_history = None
 
     st.header("Chat with multiple PDFs :books:")
+
     if "conversation" in st.session_state:
-        user_question = st.text_input("Ask a question about your documents:",key="Input1")
-    if user_question:
-            handle_userinput(user_question)
+       user_question = st.chat_input("Say something")
+       print(user_question)
+       if user_question:
+           handle_userinput(user_question)
 
     with st.sidebar:
         st.subheader("Your documents")
-        pdf_docs = st.file_uploader(
-            "Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
+        pdf_docs = st.file_uploader("Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
         if st.button("Process"):
             with st.spinner("Processing"):
                 # Clear chat history
