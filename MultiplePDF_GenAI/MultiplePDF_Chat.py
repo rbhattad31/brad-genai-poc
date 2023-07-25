@@ -14,7 +14,7 @@ import os
 
 # Azure Details:
 
-    if os.getenv("OPENAI_API_TYPE"):
+    if len(os.getenv("OPENAI_API_TYPE")) > 0:
        OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
     else:
        OPENAI_API_TYPE = st.secrets["OPENAI_API_TYPE"]
