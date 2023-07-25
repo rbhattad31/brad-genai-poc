@@ -13,6 +13,10 @@ import os
 
 
 # Azure Details:
+    OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
+    OPENAI_API_BASE = os.getenv("OPENAI_API_BASE")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
 
     if len(os.getenv("OPENAI_API_TYPE")) > 0:
        OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
