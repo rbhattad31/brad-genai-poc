@@ -1,4 +1,5 @@
+PyPDF2
 langchain
-pydantic
-tiktoken
 openai
+tiktoken
+faiss-cpu
