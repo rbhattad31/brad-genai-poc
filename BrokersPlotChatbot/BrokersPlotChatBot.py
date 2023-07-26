@@ -276,8 +276,8 @@ def main():
                 # print(user_message)
                 st.session_state.message_array.append(new_user_message)
                 st.session_state.message_array.append(new_response_message)
-                st.session_state.messages.append({"role": "assistant", "content": user_message})
-                st.chat_message("assistant").write(user_message)
+                st.session_state.messages.append({"role": "assistant", "content": "Error occurred while processing your request, please input your query again"})
+                st.chat_message("assistant").write("Error occurred while processing your request, please input your query again")
 
 
 if __name__ == "__main__":
