@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 import openai
 import json
@@ -48,14 +49,14 @@ def azure_openai_get_response(new_message):
     return response
 
 
-def first_prompt_execution(user_input, message_array):
+def first_prompt_execution(user_input, message_array, mandatory_fields):
     common_template = " : give response in only JSON Data, intent for the input in json format . if user intent is related to property then intent key in json needs to contain property and action the respective action and json format should be with all the given parameters even the values are not found. don't skip the parameters ond don't add other parameters to JSON -  json parameters are fixed and they are - "
     all_json_fields = ''' "\"intent\":\"\",\"action\":\"\", \"permit_number\": \"\", \"reference_number\": \"\", \"offering_type\": \"\", \"property_type\": \"\", \"price_on_application\": \"\", \"price\": , \"city\": \"\", \"community\": \"\", \"sub_community\": \"\", \"property_name\": \"\", \"title_en\": \"\", \"description_en\": \"completion_status\": \"\", \"amenities\": \"\", \"size\": \"\", \"bedroom\": \"\", \"bathroom\": \"\", \"agent_name\": \"\", \"agent_email\": \"\", \"agent_phone\": \"\", \"license_no\": \"\", \"parking\": \"\", \"geopoints\": \"\" , "Agent_Name": "","Agent_Contact": "", "Agent_Email": "", "user_message"'''
-    mandatory_fields = "'property_name', 'community', 'property_type'"
-    mandatory_fields_message = "in the mentioned Json parameters, following are the mandatory fields," + mandatory_fields + " if any of the mandatory fields are not identified, update the 'user_message' json parameter with the phrase that should contain the message to ask user to input the fields that are not having values of the given mandatory fields list in JSON, don't consider fields other than mandatory fields for this comparison, please be sure while updating the 'user_message'. if all mandatory fields are filled, then update this user_message with 'processing' "
+
+    mandatory_fields = ", ".join(mandatory_fields)
+    mandatory_fields_message = "in the mentioned Json parameters, following are the mandatory fields," + mandatory_fields + " if any of the mandatory fields are not identified, update the 'user_message' json parameter with the phrase that should contain the message to ask user to input the fields that are not having values of the given mandatory fields list in JSON, don't consider fields other than mandatory fields for this comparison, please be sure while updating the 'user_message'. if all mandatory fields are filled, then update this user_message with 'processing' . If 'user_message' field is already updated as 'processing', clear Json and then update it with next user action suggestion"
 
     str_first_run_template = common_template + all_json_fields + mandatory_fields_message
-    user_message = ''  # initializing user_message variable
 
     role = "user"
     content = user_input + str_first_run_template
@@ -110,9 +111,9 @@ def build_db_query_from_json(input_json):
             # elif key == "amenities":
             #     query += f"LOWER(c.{key}) like LOWER('%{value}%') AND "
             else:
-                query += f"LOWER(c.{key}) = LOWER('{value}') AND "
+                query += f"LOWER(c.{key}) = LOWER('{value}') OR "
     # To Remove Last AND after successful query generated
-    query = query[:-5]
+    query = query[:-4]
     return query
 
 
@@ -137,19 +138,33 @@ def get_cosmos_db_data(db_query):
 
 
 def display_output_in_table(json_array_from_cosmos):
-    fields_to_display = ['property_name', 'community', 'sub_community', 'property_type', 'title_en', 'Agent_Name',
-                         'Agent_Contact', 'Agent_Email']
-    selected_fields = [{field: item[field] for field in fields_to_display} for item in json_array_from_cosmos]
-    st.table(selected_fields)
+    # selected_fields = [{field: item[field] for field in fields_to_display} for item in json_array_from_cosmos]
+    db_data_df = pd.DataFrame(json_array_from_cosmos)
+
+    sorted_db_data_df = db_data_df.sort_values(by="property_name", ascending=False)
+
+    top_5_df = sorted_db_data_df.head(5)
+
+    columns_list = [
+        'property_name', 'community', 'sub_community', 'property_type', 'title_en', 'Agent_Name',
+        'Agent_Contact', 'Agent_Email']
+    sorted_n_filtered_columns_df = top_5_df[columns_list]
+    st.session_state.messages.append({"role": "assistant", "content": "Here is the data for you:"})
+    st.session_state.messages.append({"role": "assistant", "content": sorted_n_filtered_columns_df})
+    st.chat_message("assistant").write("Here is the data for you:")
+    st.chat_message("assistant").write(sorted_n_filtered_columns_df)
 
 
 def main():
+    mandatory_fields = ['property_name', 'community', 'property_type']
     st.header('Responsive Chatbot with Cosmos DB Integration')
     st.title("BrokersPlot Chatbot")
+
     if "messages" not in st.session_state:
         st.session_state["messages"] = [{"role": "assistant", "content": "Hello, How can I help you?"}]
     if "message_array" not in st.session_state:
         st.session_state["message_array"] = []
+
     for msg in st.session_state.messages:
         st.chat_message(msg["role"]).write(msg["content"])
 
@@ -159,7 +174,7 @@ def main():
         st.chat_message("user").write(prompt)
 
         # first prompt or retry prompt processing
-        if last_message["content"] == "Hello, How can I help you?" or last_message["content"] == "I’m so sorry, I’m not sure how to help with that. Can you try rephrasing?":
+        if not(isinstance(last_message["content"], pd.DataFrame)) and (last_message["content"] == "Hello, How can I help you?" or last_message["content"] == "I’m so sorry, I’m not sure how to help with that. Can you try rephrasing?"):
             st.session_state.message_array = [{"role": "system",
                                                "content": "You are an AI assistant that helps people find information and formatting text to JSON"},
                                               {"role": "user", "content": "hi how are you"},
@@ -167,7 +182,7 @@ def main():
                                                "content": "As an AI language model, I don't have feelings, but I'm functioning well. How can I assist you today?"}
                                               ]
 
-            first_prompt_response = first_prompt_execution(prompt, st.session_state.message_array)
+            first_prompt_response = first_prompt_execution(prompt, st.session_state.message_array, mandatory_fields)
 
             azure_openai_response = first_prompt_response[0]
             # print(azure_openai_response)
@@ -205,7 +220,7 @@ def main():
                     # print("Data from Cosmos DB", json_array_from_cosmos)
 
                     cosmos_db_output_length = len(json_array_from_cosmos)
-                    print(cosmos_db_output_length)
+                    # print(cosmos_db_output_length)
                     # print("Data from Cosmos DB", json_array_from_cosmos)
                     if cosmos_db_output_length != 0:
                         display_output_in_table(json_array_from_cosmos)
@@ -213,7 +228,6 @@ def main():
                         st.session_state.messages.append(
                             {"role": "assistant", "content": "Apologies!! Couldn't find data with the given details"})
                         st.chat_message("user").write("Apologies!! Couldn't find data with the given details")
-
 
                 else:
                     st.session_state.messages.append({"role": "assistant", "content": str_to_be_user_message})
@@ -224,7 +238,7 @@ def main():
                 st.session_state.messages.append({"role": "assistant", "content": str_to_be_user_message})
                 st.chat_message("assistant").write(str_to_be_user_message)
         else:
-            user_new_prompt = "user input is: " + prompt + ", please update the Json as per the new user prompt"
+            user_new_prompt = "user input is: " + prompt + ", clear the JSON values if 'user_message' parameter is already equal to 'processing' and update it with message such as to ask user to input a new property query in kind tone, else update the Json as per the new user prompt,"
             role = "user"
             new_user_message = {"role": role, "content": user_new_prompt}
             new_temp_message_array = st.session_state.message_array.copy()
@@ -237,37 +251,48 @@ def main():
 
             # extract only json from the response
             str_response_content = str(content_of_the_response)
-            json_open_index = str_response_content.find('{')
-            json_close_index = str_response_content.rfind('}') + 1
-            json_from_the_content = str_response_content[json_open_index:json_close_index]
+            # print(str_response_content)
+            try:
+                json_open_index = str_response_content.find('{')
+                # print(json_open_index)
+                json_close_index = str_response_content.rfind('}') + 1
+                # print(json_close_index)
+                json_from_the_content = str_response_content[json_open_index:json_close_index]
+                # print(json_from_the_content)
+                parsed_json_content = json.loads(json_from_the_content)
+                user_message = str(parsed_json_content["user_message"]).lower().replace('_', ' ')
 
-            parsed_json_content = json.loads(json_from_the_content)
-            user_message = str(parsed_json_content["user_message"]).lower().replace('_', ' ')
-            # print(user_message)
+                if user_message != "processing":
+                    st.session_state.message_array.append(new_user_message)
+                    st.session_state.message_array.append(new_response_message)
+                    st.session_state.messages.append({"role": "assistant", "content": user_message})
+                    st.chat_message("assistant").write(user_message)
+                else:
+                    # print(st.session_state.message_array)
 
-            if user_message != "processing":
+                    db_query = build_db_query_from_json(parsed_json_content)
+                    # print("DB Query is : ", db_query)
+
+                    # Connect to Cosmos DB and get the response from it
+                    json_array_from_cosmos = get_cosmos_db_data(db_query)
+
+                    cosmos_db_output_length = len(json_array_from_cosmos)
+                    # print(cosmos_db_output_length)
+                    # print("Data from Cosmos DB", json_array_from_cosmos)
+                    if cosmos_db_output_length != 0:
+                        display_output_in_table(json_array_from_cosmos)
+                    else:
+                        st.session_state.messages.append(
+                            {"role": "assistant", "content": "Apologies!! Couldn't find data with the given details"})
+                        st.chat_message("user").write("Apologies!! Couldn't find data with the given details")
+
+            except json.decoder.JSONDecodeError:
+                user_message = str_response_content
+                # print(user_message)
                 st.session_state.message_array.append(new_user_message)
                 st.session_state.message_array.append(new_response_message)
-                st.session_state.messages.append({"role": "assistant", "content": user_message})
-                st.chat_message("assistant").write(user_message)
-            else:
-                print( st.session_state.message_array)
-
-                db_query = build_db_query_from_json(parsed_json_content)
-                # print("DB Query is : ", db_query)
-
-                # Connect to Cosmos DB and get the response from it
-                json_array_from_cosmos = get_cosmos_db_data(db_query)
-
-                cosmos_db_output_length = len(json_array_from_cosmos)
-                print(cosmos_db_output_length)
-                # print("Data from Cosmos DB", json_array_from_cosmos)
-                if cosmos_db_output_length != 0:
-                    display_output_in_table(json_array_from_cosmos)
-                else:
-                    st.session_state.messages.append(
-                        {"role": "assistant", "content": "Apologies!! Couldn't find data with the given details"})
-                    st.chat_message("user").write("Apologies!! Couldn't find data with the given details")
+                st.session_state.messages.append({"role": "assistant", "content": "Error occurred while processing your request, please input your query again"})
+                st.chat_message("assistant").write("Error occurred while processing your request, please input your query again")
 
 
 if __name__ == "__main__":
