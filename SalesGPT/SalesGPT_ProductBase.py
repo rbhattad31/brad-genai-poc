@@ -531,7 +531,7 @@ config = dict(
     conversation_stage=conversation_stages.get('1',
                                                "Introduction: Start the conversation by introducing yourself and your company. Be polite and respectful while keeping the tone of the conversation professional."),
     use_tools=True,
-    product_catalog="sample_product_catalog.txt"
+    product_catalog="columbia_sportswear_product_data.txt"
 )
 
 
