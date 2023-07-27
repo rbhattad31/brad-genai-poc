@@ -8,10 +8,29 @@ from azure.cosmos import CosmosClient
 
 
 def azure_openai_get_response(new_message):
-    openai_api_type = os.getenv("OPENAI_API_TYPE")
-    openai_api_base = os.getenv("OPENAI_API_BASE")
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    openai_api_version = os.getenv("OPENAI_API_VERSION")
+    # openai_api_type = os.getenv("OPENAI_API_TYPE")
+    if os.getenv("OPENAI_API_TYPE"):
+        openai_api_type = os.getenv("OPENAI_API_TYPE")
+    else:
+        openai_api_type = st.secrets["OPENAI_API_TYPE"]
+
+    # openai_api_base = os.getenv("OPENAI_API_BASE")
+    if os.getenv("OPENAI_API_BASE"):
+        openai_api_base = os.getenv("OPENAI_API_BASE")
+    else:
+        openai_api_base = st.secrets["OPENAI_API_BASE"]
+
+    # openai_api_key = os.getenv("OPENAI_API_KEY")
+    if os.getenv("OPENAI_API_KEY"):
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+    else:
+        openai_api_key = st.secrets["OPENAI_API_KEY"]
+
+    # openai_api_version = os.getenv("OPENAI_API_VERSION")
+    if os.getenv("OPENAI_API_VERSION"):
+        openai_api_version = os.getenv("OPENAI_API_VERSION")
+    else:
+        openai_api_version = st.secrets["OPENAI_API_VERSION"]
 
     response = openai.ChatCompletion.create(
         engine="bradsol-openai-test",
@@ -103,10 +122,26 @@ def build_db_query_from_json(input_json):
 
 
 def get_cosmos_db_data(db_query):
-    cosmos_db_endpoint = os.getenv("COSMOS_DB_ENDPOINT")
-    cosmos_db_key = os.getenv("COSMOS_DB_KEY")
-    cosmos_db_name = os.getenv("COSMOS_DB_NAME")
-    cosmos_db_container_name = os.getenv("COSMOS_DB_CONTAINER_NAME")
+    # cosmos_db_endpoint = os.getenv("COSMOS_DB_ENDPOINT")
+    if os.getenv("COSMOS_DB_ENDPOINT"):
+        cosmos_db_endpoint = os.getenv("COSMOS_DB_ENDPOINT")
+    else:
+        cosmos_db_endpoint = st.secrets["COSMOS_DB_ENDPOINT"]
+    # cosmos_db_key = os.getenv("COSMOS_DB_KEY")
+    if os.getenv("COSMOS_DB_KEY"):
+        cosmos_db_key = os.getenv("COSMOS_DB_KEY")
+    else:
+        cosmos_db_key = st.secrets["COSMOS_DB_KEY"]
+    # cosmos_db_name = os.getenv("COSMOS_DB_NAME")
+    if os.getenv("COSMOS_DB_NAME"):
+        cosmos_db_name = os.getenv("COSMOS_DB_NAME")
+    else:
+        cosmos_db_name = st.secrets["COSMOS_DB_NAME"]
+    # cosmos_db_container_name = os.getenv("COSMOS_DB_CONTAINER_NAME")
+    if os.getenv("COSMOS_DB_CONTAINER_NAME"):
+        cosmos_db_container_name = os.getenv("COSMOS_DB_CONTAINER_NAME")
+    else:
+        cosmos_db_container_name = st.secrets["COSMOS_DB_CONTAINER_NAME"]
 
     endpoint = cosmos_db_endpoint
     key = cosmos_db_key
@@ -272,7 +307,7 @@ def main():
                         st.chat_message("user").write("Apologies!! Couldn't find data with the given details")
 
             except json.decoder.JSONDecodeError:
-                user_message = str_response_content
+                # user_message = str_response_content
                 # print(user_message)
                 st.session_state.message_array.append(new_user_message)
                 st.session_state.message_array.append(new_response_message)
