@@ -24,10 +24,22 @@ from typing import Union
 import streamlit as st
 
 # Azure Details:
-OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
-OPENAI_API_BASE = os.getenv("OPENAI_API_BASE")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
+if os.getenv("OPENAI_API_TYPE"):
+   OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
+else:
+   OPENAI_API_TYPE = st.secrets["OPENAI_API_TYPE"]
+if os.getenv("OPENAI_API_BASE"):
+   OPENAI_API_BASE = os.getenv("OPENAI_API_BASE")
+else:
+   OPENAI_API_BASE = st.secrets["OPENAI_API_BASE"]
+if os.getenv("OPENAI_API_KEY"):
+   OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+else:
+   OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+if os.getenv("OPENAI_API_VERSION"):
+    OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
+else:
+   OPENAI_API_VERSION = st.secrets["OPENAI_API_VERSION"]
 
 
 # Stage Analyzer Class:
@@ -519,7 +531,7 @@ config = dict(
     conversation_stage=conversation_stages.get('1',
                                                "Introduction: Start the conversation by introducing yourself and your company. Be polite and respectful while keeping the tone of the conversation professional."),
     use_tools=True,
-    product_catalog="sample_product_catalog.txt"
+    product_catalog="columbia_sportswear_product_data.txt"
 )
 
 
