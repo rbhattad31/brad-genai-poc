@@ -3,3 +3,5 @@ langchain
 openai
 tiktoken
 faiss-cpu
+pdf2image
+pytesseract
