@@ -138,12 +138,12 @@ def setup_knowledge_base(product_catalog: str = None):
     with open(product_catalog, "r") as f:
         product_catalog = f.read()
 
-    text_splitter = CharacterTextSplitter(chunk_size=50000, chunk_overlap=300)
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     texts = text_splitter.split_text(product_catalog)
     #print(texts)
 
     llm = AzureOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
-    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test")
+    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test",chunk_size = 1)
     # docsearch = Chroma.from_texts(texts, embeddings, collection_name="product-knowledge-base")
     docsearch = langchain.FAISS.from_texts(texts=texts, embedding=embeddings)
 
