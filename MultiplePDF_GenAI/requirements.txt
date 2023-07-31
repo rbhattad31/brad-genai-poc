@@ -1,0 +1,8 @@
+PyPDF2
+langchain
+openai
+tiktoken
+faiss-cpu
+pdf2image
+pytesseract
+poppler-0.68.0
