@@ -14,7 +14,7 @@ def add_knowledge_base_products_to_cache(product_catalog: str = None):
         """
     # load the document and split it into chunks
     print("Inside Add Knowledge Base")
-    loader = TextLoader(product_catalog)
+    loader = TextLoader(product_catalog,encoding='utf8')
     documents = loader.load()
     text_splitter = CharacterTextSplitter(chunk_size=10, chunk_overlap=0)
     docs = text_splitter.split_documents(documents)
