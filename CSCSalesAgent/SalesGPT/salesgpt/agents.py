@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Union
+from loguru import logger
 
 from langchain import LLMChain
 from langchain.agents import AgentExecutor, LLMSingleActionAgent
@@ -17,6 +18,10 @@ from salesgpt.templates import CustomPromptTemplateForTools
 from salesgpt.tools import get_tools, setup_knowledge_base
 
 import streamlit as st
+
+from  salesgpt.callbackhandler import MyCustomHandler
+
+
 class SalesGPT(Chain, BaseModel):
     """Controller model for the Sales Agent."""
 
@@ -148,48 +153,53 @@ class SalesGPT(Chain, BaseModel):
 
         # Generate agent's utterance
         # if use tools
-        if self.use_tools:
-            #print("Use Tools True")
-            ai_message = self.sales_agent_executor.run(
-                input="",
-                conversation_stage=self.current_conversation_stage,
-                conversation_history="\n".join(self.conversation_history),
-                salesperson_name=self.salesperson_name,
-                salesperson_role=self.salesperson_role,
-                company_name=self.company_name,
-                company_business=self.company_business,
-                company_values=self.company_values,
-                conversation_purpose=self.conversation_purpose,
-                conversation_type=self.conversation_type,
-            )
+        try:
+            if self.use_tools:
+                #print("Use Tools True")
+                ai_message = self.sales_agent_executor.run(
+                    input="",
+                    conversation_stage=self.current_conversation_stage,
+                    conversation_history="\n".join(self.conversation_history),
+                    salesperson_name=self.salesperson_name,
+                    salesperson_role=self.salesperson_role,
+                    company_name=self.company_name,
+                    company_business=self.company_business,
+                    company_values=self.company_values,
+                    conversation_purpose=self.conversation_purpose,
+                    conversation_type=self.conversation_type,
+                )
 
-        else:
-            # else
-            ai_message = self.sales_conversation_utterance_chain.run(
-                conversation_stage=self.current_conversation_stage,
-                conversation_history="\n".join(self.conversation_history),
-                salesperson_name=self.salesperson_name,
-                salesperson_role=self.salesperson_role,
-                company_name=self.company_name,
-                company_business=self.company_business,
-                company_values=self.company_values,
-                conversation_purpose=self.conversation_purpose,
-                conversation_type=self.conversation_type,
-            )
+            else:
+                # else
+                customhandler = MyCustomHandler()
+                ai_message = self.sales_conversation_utterance_chain.run(
+                    conversation_stage=self.current_conversation_stage,
+                    conversation_history="\n".join(self.conversation_history),
+                    salesperson_name=self.salesperson_name,
+                    salesperson_role=self.salesperson_role,
+                    company_name=self.company_name,
+                    company_business=self.company_business,
+                    company_values=self.company_values,
+                    conversation_purpose=self.conversation_purpose,
+                    conversation_type=self.conversation_type,
+                    callbacks=[customhandler]
+                )
+        except:
+            ai_message=""
 
         # Add agent's response to conversation history
         #print(f'{self.salesperson_name}: ', ai_message.rstrip('<END_OF_TURN>'))
         agent_name = self.salesperson_name
         ai_message = agent_name + ": " + ai_message
         as_msg = ai_message
-        print("As message"+as_msg)
+        #print("As message"+as_msg)
         if '<END_OF_TURN>' in as_msg:
             as_msg = as_msg.replace('<END_OF_TURN>', '')
         st.session_state.chat_history.append(as_msg)
         if '<END_OF_TURN>' not in ai_message:
             ai_message += ' <END_OF_TURN>'
         self.conversation_history.append(ai_message)
-        print(ai_message.replace("<END_OF_TURN>", ""))
+        #print(ai_message.replace("<END_OF_TURN>", ""))
         for i, msg in enumerate(st.session_state.chat_history):
             if i % 2 == 0:
                 st.chat_message('user').write(msg)
@@ -223,6 +233,7 @@ class SalesGPT(Chain, BaseModel):
 
         else:
             print("Custom Prompt False")
+
             sales_conversation_utterance_chain = SalesConversationChain.from_llm(
                 llm, verbose=verbose
             )
@@ -232,9 +243,8 @@ class SalesGPT(Chain, BaseModel):
             print("Use Tools True")
             product_catalog = kwargs["product_catalog"]
             knowledge_base = setup_knowledge_base(product_catalog)
-            #print("knowledge_base"+knowledge_base)
             tools = get_tools(knowledge_base)
-
+            customhandler = MyCustomHandler()
             prompt = CustomPromptTemplateForTools(
                 template=SALES_AGENT_TOOLS_PROMPT,
                 tools_getter=lambda x: tools,
@@ -252,8 +262,10 @@ class SalesGPT(Chain, BaseModel):
                     "conversation_type",
                     "conversation_history",
                 ],
+                callbacks = [customhandler]
             )
-            llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=verbose)
+
+            llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=verbose,callbacks=[customhandler])
 
             tool_names = [tool.name for tool in tools]
 
@@ -266,11 +278,12 @@ class SalesGPT(Chain, BaseModel):
                 output_parser=output_parser,
                 stop=["\nObservation:"],
                 allowed_tools=tool_names,
-                verbose=verbose
+                verbose=verbose,
+                callbacks=[customhandler]
             )
 
             sales_agent_executor = AgentExecutor.from_agent_and_tools(
-                agent=sales_agent_with_tools, tools=tools, verbose=verbose
+                agent=sales_agent_with_tools, tools=tools, verbose=verbose,callbacks=[customhandler]
             )
         else:
             sales_agent_executor = None

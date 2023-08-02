@@ -14,6 +14,8 @@ class SalesConvoOutputParser(AgentOutputParser):
         return FORMAT_INSTRUCTIONS
 
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
+        print("In Parse Function")
+        print(text)
         if self.verbose:
             print("TEXT")
             print(text)

@@ -3,6 +3,10 @@ import argparse
 import os
 import json
 import streamlit as st
+from langchain.callbacks import StdOutCallbackHandler, FileCallbackHandler
+from langchain.callbacks.base import BaseCallbackManager
+from langchain.callbacks.manager import CallbackManager
+from loguru import logger
 
 from salesgpt.agents import SalesGPT
 from langchain.chat_models import ChatOpenAI
@@ -10,15 +14,17 @@ from langchain.llms import AzureOpenAI
 from langchain.chat_models import AzureChatOpenAI
 from salesgpt.tools import get_tools, setup_knowledge_base, add_knowledge_base_products_to_cache
 
+from salesgpt.callbackhandler import MyCustomHandler
+
 if __name__ == "__main__":
 
     # import your OpenAI key (put in your .env file)
     with open('.env','r') as f:
         env_file = f.readlines()
     envs_dict = {key.strip("'") :value.strip("\n") for key, value in [(i.split('=')) for i in env_file]}
-    print(envs_dict)
-    os.environ['OPENAI_API_TYPE'] = "azure"
-    os.environ['OPENAI_API_BASE'] = "https://bradsolopenai.openai.azure.com/"
+    #print(envs_dict)
+    #os.environ['OPENAI_API_TYPE'] = "azure"
+    #os.environ['OPENAI_API_BASE'] = "https://bradsolopenai.openai.azure.com/"
     os.environ['OPENAI_API_VERSION'] = "2023-03-15-preview"
       
     # Initialize argparse
@@ -37,9 +43,19 @@ if __name__ == "__main__":
     verbose = args.verbose
     max_num_turns = args.max_num_turns
 
+
+    #handlers
+    handler = StdOutCallbackHandler()
+    customhandler=MyCustomHandler()
+
+    logfile = "examples/output.log"
+
+    logger.add(logfile, colorize=True, enqueue=True)
+    filehandler = FileCallbackHandler(logfile)
+
     #llm = ChatOpenAI(temperature=0.2)
-    llm = AzureChatOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
-    
+    llm = AzureChatOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",callbacks=[customhandler,filehandler],request_timeout=200)
+    add_knowledge_base_products_to_cache("examples/columbia_sportswear_product_data.txt")
     if config_path=='':
         print('No agent config specified, using a standard config')
         USE_TOOLS=True
@@ -66,25 +82,19 @@ if __name__ == "__main__":
         sales_agent = SalesGPT.from_llm(llm, verbose=verbose, **config)
 
 
-    #sales_agent.seed_agent()
     st.header('Columbia SportsWear Chatbot')
-    # st.title("SalesGPT Chatbot")
     # History is empty then it needs to execute
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
         st.session_state.sales_agent = sales_agent
         # init sales agent
-
-        print("Conversation stage" + sales_agent.conversation_stage_id)
         st.session_state.sales_agent.seed_agent()
-        add_knowledge_base_products_to_cache(product_catalog = 'examples/columbia_sportswear_product_data.txt')
-        print("Init done")
+        logger.info("Init Done")
 
     if human := st.chat_input():
         print("\n")
-        #human = 'user' + ": " + human
-        #print("Human Input" + human)
+        logger.info("Human"+human)
         st.session_state.chat_history.append(human)
         st.session_state.sales_agent.human_step(human)
 

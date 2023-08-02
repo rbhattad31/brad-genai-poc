@@ -9,3 +9,5 @@ chromadb>=0.3.29
 tiktoken>=0.4.0
 streamlit
 sentence_transformers
+loguru
+lark
