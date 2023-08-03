@@ -5,6 +5,7 @@ import shutil
 
 from typing import Dict, List, Any, Union, Callable
 
+from langchain.callbacks import FileCallbackHandler
 from langchain.document_loaders import TextLoader
 from langchain.embeddings import SentenceTransformerEmbeddings
 from langchain.vectorstores import Chroma
@@ -25,6 +26,8 @@ from langchain.schema import AgentAction, AgentFinish, OutputParserException
 
 from loguru import logger
 from salesgpt.prompts import SALES_AGENT_TOOLS_PROMPT
+
+from SalesGPT.salesgpt.callbackhandler import MyCustomHandler
 
 
 class StageAnalyzerChain(LLMChain):
@@ -151,7 +154,10 @@ embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 # load it into Chroma
 #db = FAISS.from_documents(docs, embeddings)
 #db.save_local("faiss_index")
-llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
+logfile = "../examples/output.log"
+filehandler = FileCallbackHandler(logfile);
+customhandler = MyCustomHandler()
+llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test",max_retries=3, model_name="gpt-35-turbo", callbacks=[customhandler,filehandler],request_timeout=200,verbose=True)
 db = FAISS.load_local("faiss_index", embeddings)
 #db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
 knowledge_base = RetrievalQA.from_chain_type(
@@ -295,7 +301,7 @@ class SalesGPT(Chain, BaseModel):
 
     def human_step(self, human_input):
         # process human input
-        logger.info("Human Step"+human_input)
+        logger.info("Human Step : "+human_input)
         human_input = "User: " + human_input + " <END_OF_TURN>"
         self.conversation_history.append(human_input)
 
@@ -379,7 +385,8 @@ class SalesGPT(Chain, BaseModel):
                     "conversation_history",
                 ],
             )
-            llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=verbose)
+            customhandler = MyCustomHandler()
+            llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=verbose,callbacks=[customhandler])
 
             tool_names = [tool.name for tool in tools]
 
@@ -393,10 +400,11 @@ class SalesGPT(Chain, BaseModel):
                 stop=["\nObservation:"],
                 allowed_tools=tool_names,
                 verbose=verbose,
+                callbacks=[customhandler]
             )
 
             sales_agent_executor = AgentExecutor.from_agent_and_tools(
-                agent=sales_agent_with_tools, tools=tools, verbose=verbose
+                agent=sales_agent_with_tools, tools=tools, verbose=verbose ,callbacks=[customhandler]
             )
 
         return cls(
@@ -426,6 +434,16 @@ sales_agent.determine_conversation_stage()
 sales_agent.step()
 sales_agent.human_step(
     "I am well, how are you?"
+)
+sales_agent.determine_conversation_stage()
+sales_agent.step()
+sales_agent.human_step(
+    "Need mens hiking shoes"
+)
+sales_agent.determine_conversation_stage()
+sales_agent.step()
+sales_agent.human_step(
+    "yes what shoes are less than 700"
 )
 sales_agent.determine_conversation_stage()
 sales_agent.step()

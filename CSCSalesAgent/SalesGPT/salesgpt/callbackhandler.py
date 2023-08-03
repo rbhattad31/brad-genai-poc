@@ -12,18 +12,20 @@ class MyCustomHandler(BaseCallbackHandler):
         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> Any:
         """Run when LLM starts running."""
-        print("On LLM Start")
+        #print("On LLM Start")
+        logger.info("On LLM Start")
 
     def on_chat_model_start(
         self, serialized: Dict[str, Any], messages: List[List[BaseMessage]], **kwargs: Any
     ) -> Any:
         """Run when Chat Model starts running."""
-        print("On Chat Model Start")
-        logger.info("Messages")
+        #print("On Chat Model Start")
+        logger.info("On Chat Model Start")
 
     def on_llm_new_token(self, token: str, **kwargs: Any) -> Any:
         """Run on new LLM token. Only available when streaming is enabled."""
-        print("On new llm token"+token)
+        logger.info("On LLM New Token")
+        #print("On new llm token"+token)
 
     def on_llm_end(self, response: LLMResult, **kwargs: Any) -> Any:
         """Run when LLM ends running."""
@@ -32,13 +34,13 @@ class MyCustomHandler(BaseCallbackHandler):
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
     ) -> Any:
         """Run when LLM errors."""
-        print("On new llm error" + Exception)
+        logger.error("On LLM Error")
 
     def on_chain_start(
         self, serialized: Dict[str, Any], inputs: Dict[str, Any], **kwargs: Any
     ) -> Any:
         """Run when chain starts running."""
-        print("On Chain Start")
+        logger.info("On Chain Start")
 
     def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> Any:
         """Run when chain ends running."""
@@ -47,13 +49,13 @@ class MyCustomHandler(BaseCallbackHandler):
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
     ) -> Any:
         """Run when chain errors."""
-        print(Exception)
+        logger.error("On Chain Error")
 
     def on_tool_start(
         self, serialized: Dict[str, Any], input_str: str, **kwargs: Any
     ) -> Any:
         """Run when tool starts running."""
-        print("On Tool Start")
+        logger.info("On Tool Start")
 
     def on_tool_end(self, output: str, **kwargs: Any) -> Any:
         """Run when tool ends running."""
