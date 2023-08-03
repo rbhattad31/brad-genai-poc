@@ -3,11 +3,12 @@ from typing import Any, Dict, List, Union
 from loguru import logger
 
 from langchain import LLMChain
-from langchain.agents import AgentExecutor, LLMSingleActionAgent
+from langchain.agents import AgentExecutor, LLMSingleActionAgent, AgentType
 from langchain.chains import RetrievalQA
 from langchain.chains.base import Chain
 from langchain.llms import BaseLLM
 from pydantic import BaseModel, Field
+from langchain.output_parsers import PydanticOutputParser
 
 from salesgpt.chains import SalesConversationChain, StageAnalyzerChain
 from salesgpt.logger import time_logger
@@ -155,7 +156,7 @@ class SalesGPT(Chain, BaseModel):
         # if use tools
         try:
             if self.use_tools:
-                #print("Use Tools True")
+                logger.info('Used Tools Agent Executor')
                 ai_message = self.sales_agent_executor.run(
                     input="",
                     conversation_stage=self.current_conversation_stage,
@@ -171,7 +172,7 @@ class SalesGPT(Chain, BaseModel):
 
             else:
                 # else
-                customhandler = MyCustomHandler()
+                logger.info('Used Tools Chain Executor')
                 ai_message = self.sales_conversation_utterance_chain.run(
                     conversation_stage=self.current_conversation_stage,
                     conversation_history="\n".join(self.conversation_history),
@@ -181,11 +182,14 @@ class SalesGPT(Chain, BaseModel):
                     company_business=self.company_business,
                     company_values=self.company_values,
                     conversation_purpose=self.conversation_purpose,
-                    conversation_type=self.conversation_type,
-                    callbacks=[customhandler]
+                    conversation_type=self.conversation_type
                 )
-        except:
+        except Exception as e:
             ai_message=""
+            logger.error('Chain Execute Error: ' + str(e))
+
+
+
 
         # Add agent's response to conversation history
         #print(f'{self.salesperson_name}: ', ai_message.rstrip('<END_OF_TURN>'))
@@ -278,7 +282,10 @@ class SalesGPT(Chain, BaseModel):
                 output_parser=output_parser,
                 stop=["\nObservation:"],
                 allowed_tools=tool_names,
+                agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
                 verbose=verbose,
+                handle_parsing_errors="Check your output and make sure it conforms!",
+                max_execution_time=10,
                 callbacks=[customhandler]
             )
 

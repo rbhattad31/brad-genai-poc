@@ -1,5 +1,6 @@
 from langchain import LLMChain, PromptTemplate
 from langchain.llms import BaseLLM
+from langchain.output_parsers import PydanticOutputParser
 
 from salesgpt.logger import time_logger
 
@@ -113,6 +114,6 @@ Conversation history:
                     "conversation_purpose",
                     "conversation_type",
                     "conversation_history",
-                ],
+                ]
             )
         return cls(prompt=prompt, llm=llm, verbose=verbose)

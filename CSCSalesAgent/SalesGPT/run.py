@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     #llm = ChatOpenAI(temperature=0.2)
     llm = AzureChatOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",callbacks=[customhandler,filehandler],request_timeout=200)
-    add_knowledge_base_products_to_cache("examples/columbia_sportswear_product_data.txt")
+    add_knowledge_base_products_to_cache("examples/sample_product_catalog.txt")
     if config_path=='':
         print('No agent config specified, using a standard config')
         USE_TOOLS=True
@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 conversation_history=[],
                 conversation_type="call",
                 use_tools=True,
-                product_catalog="examples/columbia_sportswear_product_data.txt"
+                product_catalog="examples/sample_product_catalog.txt"
             )
             sales_agent = SalesGPT.from_llm(llm, verbose=False, **config)
         else:

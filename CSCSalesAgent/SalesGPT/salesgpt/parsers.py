@@ -4,6 +4,7 @@ from typing import Union
 from langchain.agents.agent import AgentOutputParser
 from langchain.agents.conversational.prompt import FORMAT_INSTRUCTIONS
 from langchain.schema import AgentAction, AgentFinish  # OutputParserException
+from loguru import logger
 
 
 class SalesConvoOutputParser(AgentOutputParser):
@@ -14,30 +15,35 @@ class SalesConvoOutputParser(AgentOutputParser):
         return FORMAT_INSTRUCTIONS
 
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
-        print("In Parse Function")
-        print(text)
-        if self.verbose:
-            print("TEXT")
-            print(text)
-            print("-------")
-        if f"{self.ai_prefix}:" in text:
-            return AgentFinish(
-                {"output": text.split(f"{self.ai_prefix}:")[-1].strip()}, text
-            )
-        regex = r"Action: (.*?)[\n]*Action Input: (.*)"
-        match = re.search(regex, text)
-        if not match:
-            ## TODO - this is not entirely reliable, sometimes results in an error.
-            return AgentFinish(
-                {
-                    "output": "I apologize, I was unable to find the answer to your question. Is there anything else I can help with?"
-                },
-                text,
-            )
-            # raise OutputParserException(f"Could not parse LLM output: `{text}`")
-        action = match.group(1)
-        action_input = match.group(2)
-        return AgentAction(action.strip(), action_input.strip(" ").strip('"'), text)
+        try:
+            logger.info("In Output Parser")
+            if self.verbose:
+                print("TEXT")
+                print(text)
+                print("-------")
+            if f"{self.ai_prefix}:" in text:
+                return AgentFinish(
+                    {"output": text.split(f"{self.ai_prefix}:")[-1].strip()}, text
+                )
+            logger.info("In Output Parser 2"+text)
+            regex = r"Action: (.*?)[\n]*Action Input: (.*)"
+            match = re.search(regex, text)
+            if not match:
+                ## TODO - this is not entirely reliable, sometimes results in an error.
+                return AgentFinish(
+                    {
+                        "output": "I apologize, I was unable to find the answer to your question. Is there anything else I can help with?"
+                    },
+                    text,
+                )
+                # raise OutputParserException(f"Could not parse LLM output: `{text}`")
+            #logger.info("In Output Parser 3"+action)
+            action = match.group(1)
+            action_input = match.group(2)
+            return AgentAction(action.strip(), action_input.strip(" ").strip('"'), text)
+        except Exception as e:
+            logger.error('Ouput Parser Error: ' + str(e))
+
 
     @property
     def _type(self) -> str:
