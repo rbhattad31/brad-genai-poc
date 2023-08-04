@@ -4,6 +4,7 @@
 **__pycache__
 /scratch
 /chroma_db
+/faiss_index
 **.chroma/
 
 # Distribution / packaging

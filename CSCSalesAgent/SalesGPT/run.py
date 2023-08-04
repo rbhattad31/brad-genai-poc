@@ -23,8 +23,6 @@ if __name__ == "__main__":
         env_file = f.readlines()
     envs_dict = {key.strip("'") :value.strip("\n") for key, value in [(i.split('=')) for i in env_file]}
     #print(envs_dict)
-    #os.environ['OPENAI_API_TYPE'] = "azure"
-    #os.environ['OPENAI_API_BASE'] = "https://bradsolopenai.openai.azure.com/"
     os.environ['OPENAI_API_VERSION'] = "2023-03-15-preview"
       
     # Initialize argparse

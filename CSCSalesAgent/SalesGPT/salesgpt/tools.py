@@ -12,15 +12,16 @@ from langchain.vectorstores import Chroma
 from langchain.llms import AzureOpenAI
 from langchain.document_loaders import TextLoader
 from pydantic import BaseModel, Field, validator
+from loguru import logger
+from salesgpt.logger import time_logger
 
-
-
+@time_logger
 def add_knowledge_base_products_to_cache(product_catalog: str = None):
     """
         We assume that the product catalog is simply a text string.
         """
     # load the document and split it into chunks
-    print("Inside Add Knowledge Base")
+    logger.info("Inside Add Knowledge Base")
     loader = TextLoader(product_catalog,encoding='utf8')
     documents = loader.load()
     text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=0)
@@ -53,17 +54,12 @@ def get_tools(knowledge_base):
         Tool(
             name="ProductSearch",
             func=knowledge_base.run,
-            description="useful for when you need to answer questions about product information and description",
-        ),
-        Tool(
-            name="ProductDetails",
-            func=knowledge_base.run,
-            description="useful for when you need to show list of product options",
+            description="useful for when you need to answer questions about product information like colors, size and description",
         ),
         Tool(
             name="ProductPrice",
             func=knowledge_base.run,
-            description="useful for when you need to answer questions about product price",
+            description="useful for when you need to show price or cost of a product",
         ),
         Tool(
             name="ProductImage",

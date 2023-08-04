@@ -132,6 +132,6 @@ agent = LLMSingleActionAgent(
 )
 
 
-agent_executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=False)
+agent_executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True)
 agent_executor.run("Who is Leo DiCaprio's girlfriend? What is her current age raised to the 0.43 power?")
 
