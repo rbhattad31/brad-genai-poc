@@ -54,7 +54,7 @@ if __name__ == "__main__":
     filehandler = FileCallbackHandler(logfile)
 
     #llm = ChatOpenAI(temperature=0.2)
-    llm = AzureChatOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",callbacks=[customhandler,filehandler],request_timeout=200)
+    llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",callbacks=[customhandler,filehandler],request_timeout=10,max_retries=3)
     add_knowledge_base_products_to_cache("examples/sample_product_catalog.txt")
     if config_path=='':
         print('No agent config specified, using a standard config')
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                 company_values="At Columbia Sportswear Company, we're more than just a leader in the global active lifestyle apparel, footwear, accessories and equipment industry. We connect active people with their passions.",
                 conversation_purpose="find out whether they are looking to buy sportswear",
                 conversation_history=[],
-                conversation_type="call",
+                conversation_type="chat",
                 use_tools=True,
                 product_catalog="examples/sample_product_catalog.txt"
             )

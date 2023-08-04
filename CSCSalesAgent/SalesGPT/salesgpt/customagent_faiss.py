@@ -5,7 +5,7 @@ import shutil
 
 from typing import Dict, List, Any, Union, Callable
 
-from langchain.callbacks import FileCallbackHandler
+from langchain.callbacks import FileCallbackHandler, get_openai_callback
 from langchain.document_loaders import TextLoader
 from langchain.embeddings import SentenceTransformerEmbeddings
 from langchain.vectorstores import Chroma
@@ -157,7 +157,7 @@ embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 logfile = "../examples/output.log"
 filehandler = FileCallbackHandler(logfile);
 customhandler = MyCustomHandler()
-llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test",max_retries=3, model_name="gpt-35-turbo", callbacks=[customhandler,filehandler],request_timeout=200,verbose=True)
+llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test",max_retries=3, model_name="gpt-35-turbo", callbacks=[customhandler,filehandler],request_timeout=10,verbose=True)
 db = FAISS.load_local("faiss_index", embeddings)
 #db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
 knowledge_base = RetrievalQA.from_chain_type(
@@ -429,8 +429,20 @@ config = dict(
                 product_catalog="examples/sample_product_catalog.txt"
             )
 sales_agent = SalesGPT.from_llm(llm, verbose=False, **config)
-sales_agent.seed_agent()
-sales_agent.determine_conversation_stage()
+with get_openai_callback() as cb:
+    sales_agent.seed_agent()
+    print(f"Total Tokens: {cb.total_tokens}")
+    print(f"Prompt Tokens: {cb.prompt_tokens}")
+    print(f"Completion Tokens: {cb.completion_tokens}")
+    print(f"Total Cost (USD): ${cb.total_cost}")
+
+with get_openai_callback() as cb:
+    sales_agent.determine_conversation_stage()
+    print(f"Total Tokens: {cb.total_tokens}")
+    print(f"Prompt Tokens: {cb.prompt_tokens}")
+    print(f"Completion Tokens: {cb.completion_tokens}")
+    print(f"Total Cost (USD): ${cb.total_cost}")
+
 sales_agent.step()
 sales_agent.human_step(
     "I am well, how are you?"
@@ -438,12 +450,12 @@ sales_agent.human_step(
 sales_agent.determine_conversation_stage()
 sales_agent.step()
 sales_agent.human_step(
-    "Need mens hiking shoes"
+    "show mens jackets"
 )
 sales_agent.determine_conversation_stage()
 sales_agent.step()
 sales_agent.human_step(
-    "yes what shoes are less than 700"
+    "yes price less than 700"
 )
 sales_agent.determine_conversation_stage()
 sales_agent.step()
