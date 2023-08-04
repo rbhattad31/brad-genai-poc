@@ -12,3 +12,4 @@ sentence_transformers
 loguru
 lark
 faiss-gpu
+google-search-results
