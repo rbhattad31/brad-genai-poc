@@ -16,7 +16,7 @@ class SalesConvoOutputParser(AgentOutputParser):
 
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
         try:
-            logger.info("In Output Parser")
+            logger.info("In Output Parser "+text)
             if self.verbose:
                 print("TEXT")
                 print(text)

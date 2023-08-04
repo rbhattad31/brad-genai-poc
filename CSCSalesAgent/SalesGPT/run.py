@@ -55,7 +55,9 @@ if __name__ == "__main__":
 
     #llm = ChatOpenAI(temperature=0.2)
     llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",callbacks=[customhandler,filehandler],request_timeout=10,max_retries=3)
-    add_knowledge_base_products_to_cache("examples/sample_product_catalog.txt")
+    if not os.path.isdir('faiss_index'):
+        add_knowledge_base_products_to_cache("examples/sample_product_catalog.txt")
+
     if config_path=='':
         print('No agent config specified, using a standard config')
         USE_TOOLS=True
@@ -94,7 +96,7 @@ if __name__ == "__main__":
 
     if human := st.chat_input():
         print("\n")
-        logger.info("Human"+human)
+        logger.info("Human "+human)
         st.session_state.chat_history.append(human)
         st.session_state.sales_agent.human_step(human)
 

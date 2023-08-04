@@ -1,4 +1,4 @@
-from langchain import FAISS
+from langchain import FAISS, GoogleSerperAPIWrapper, SerpAPIWrapper
 from langchain.agents import Tool
 from langchain.chains import RetrievalQA
 from langchain.chains.query_constructor.schema import AttributeInfo
@@ -25,7 +25,8 @@ def add_knowledge_base_products_to_cache(product_catalog: str = None):
     documents = loader.load()
     text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=0)
     docs = text_splitter.split_documents(documents)
-    embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    #embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test",chunk_size=1)
     db = FAISS.from_documents(docs, embeddings)
     db.save_local("faiss_index")
 
@@ -35,7 +36,8 @@ def setup_knowledge_base(product_catalog: str = None):
     We assume that the product catalog is simply a text string.
     """
     llm = AzureOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
-    embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    #embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test")
     db = FAISS.load_local("faiss_index", embeddings)
     knowledge_base = RetrievalQA.from_chain_type(
         llm=llm, chain_type="stuff", retriever=db.as_retriever()
@@ -45,12 +47,30 @@ def setup_knowledge_base(product_catalog: str = None):
 
 def get_tools(knowledge_base):
     # we only use one tool for now, but this is highly extensible!
+    search = SerpAPIWrapper()
+
     tools = [
         Tool(
             name="ProductSearch",
             func=knowledge_base.run,
-            description="useful for when you need to answer questions about product information",
-        )
+            description="useful for when you need to answer questions about product information and description",
+        ),
+        Tool(
+            name="ProductDetails",
+            func=knowledge_base.run,
+            description="useful for when you need to show list of product options",
+        ),
+        Tool(
+            name="ProductPrice",
+            func=knowledge_base.run,
+            description="useful for when you need to answer questions about product price",
+        ),
+        Tool(
+            name="ProductImage",
+            func=search.run,
+            description="useful for when you need to answer questions about product image",
+        ),
+
     ]
 
     return tools

@@ -13,7 +13,7 @@ from langchain.chat_models import AzureChatOpenAI
 
 
 # Define which tools the agent can use to answer user queries
-search = SerpAPIWrapper()
+search = SerpAPIWrapper(serper_api_key="f044b7e1c1662ccca7d787115e99c93ca58f7c2099c2dbf1bb7bb0f54395eb62")
 tools = [
     Tool(
         name = "Search",
