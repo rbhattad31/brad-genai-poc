@@ -24,6 +24,28 @@ if __name__ == "__main__":
     # envs_dict = {key.strip("'") :value.strip("\n") for key, value in [(i.split('=')) for i in env_file]}
     #print(envs_dict)
     os.environ['OPENAI_API_VERSION'] = "2023-03-15-preview"
+    if os.getenv("OPENAI_API_TYPE"):
+        openai_api_type = os.getenv("OPENAI_API_TYPE")
+    else:
+        openai_api_type = st.secrets["OPENAI_API_TYPE"]
+
+    # openai_api_base = os.getenv("OPENAI_API_BASE")
+    if os.getenv("OPENAI_API_BASE"):
+        openai_api_base = os.getenv("OPENAI_API_BASE")
+    else:
+        openai_api_base = st.secrets["OPENAI_API_BASE"]
+
+    # openai_api_key = os.getenv("OPENAI_API_KEY")
+    if os.getenv("OPENAI_API_KEY"):
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+    else:
+        openai_api_key = st.secrets["OPENAI_API_KEY"]
+
+    # openai_api_version = os.getenv("OPENAI_API_VERSION")
+    if os.getenv("OPENAI_API_VERSION"):
+        openai_api_version = os.getenv("OPENAI_API_VERSION")
+    else:
+        openai_api_version = st.secrets["OPENAI_API_VERSION"]
       
     # Initialize argparse
     parser = argparse.ArgumentParser(description='Description of your program')
