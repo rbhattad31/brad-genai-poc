@@ -19,9 +19,9 @@ from salesgpt.callbackhandler import MyCustomHandler
 if __name__ == "__main__":
 
     # import your OpenAI key (put in your .env file)
-    with open('.env','r') as f:
-        env_file = f.readlines()
-    envs_dict = {key.strip("'") :value.strip("\n") for key, value in [(i.split('=')) for i in env_file]}
+    # with open('.env','r') as f:
+        # env_file = f.readlines()
+    # envs_dict = {key.strip("'") :value.strip("\n") for key, value in [(i.split('=')) for i in env_file]}
     #print(envs_dict)
     os.environ['OPENAI_API_VERSION'] = "2023-03-15-preview"
       
