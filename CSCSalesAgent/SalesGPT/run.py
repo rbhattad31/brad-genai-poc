@@ -76,7 +76,7 @@ if __name__ == "__main__":
     #llm = ChatOpenAI(temperature=0.2)
     llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",callbacks=[customhandler,filehandler],request_timeout=10,max_retries=3)
     if not os.path.isdir('faiss_index'):
-        add_knowledge_base_products_to_cache("examples/sample_product_catalog.txt")
+        add_knowledge_base_products_to_cache("sample_product_catalog.txt")
 
     if config_path=='':
         print('No agent config specified, using a standard config')
