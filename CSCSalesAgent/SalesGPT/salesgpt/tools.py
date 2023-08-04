@@ -57,12 +57,7 @@ def get_tools(knowledge_base):
             description="useful for when you need to answer questions about product information like colors, size and description",
         ),
         Tool(
-            name="ProductPrice",
-            func=knowledge_base.run,
-            description="useful for when you need to show price or cost of a product",
-        ),
-        Tool(
-            name="ProductImage",
+            name="ProductOrder",
             func=search.run,
             description="useful for when you need to answer questions about product image",
         ),

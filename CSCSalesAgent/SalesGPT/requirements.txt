@@ -11,3 +11,4 @@ streamlit
 sentence_transformers
 loguru
 lark
+faiss-gpu
