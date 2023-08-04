@@ -45,7 +45,11 @@ if __name__ == "__main__":
     if os.getenv("OPENAI_API_VERSION"):
         openai_api_version = os.getenv("OPENAI_API_VERSION")
     else:
-        openai_api_version = st.secrets["OPENAI_API_VERSION"]
+        serpapi_api_key = st.secrets["OPENAI_API_VERSION"]
+    if os.getenv("SERPAPI_API_KEY"):
+        serpapi_api_key = os.getenv("SERPAPI_API_KEY")
+    else:
+        openai_api_version = st.secrets["SERPAPI_API_KEY"]    
       
     # Initialize argparse
     parser = argparse.ArgumentParser(description='Description of your program')
