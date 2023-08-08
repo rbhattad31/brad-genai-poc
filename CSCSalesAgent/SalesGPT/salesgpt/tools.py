@@ -54,12 +54,17 @@ def get_tools(knowledge_base):
         Tool(
             name="ProductSearch",
             func=knowledge_base.run,
-            description="useful for when you need to answer questions about product information like colors, size and description",
+            description="useful for when you need to answer questions about product information like price , colors, size and description",
         ),
         Tool(
             name="ProductOrder",
             func=search.run,
             description="useful for when you need to answer questions about product image",
+        ),
+        Tool(
+            name="Search",
+            func=search.run,
+            description="useful for when you need to answer questions about product reviews from google",
         ),
 
     ]
