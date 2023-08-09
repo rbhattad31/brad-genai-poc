@@ -2,6 +2,8 @@ from copy import deepcopy
 from typing import Any, Dict, List, Union
 from loguru import logger
 import streamlit as st
+import uuid
+import json
 
 from langchain import LLMChain
 from langchain.agents import AgentExecutor, LLMSingleActionAgent, AgentType
@@ -189,7 +191,7 @@ class SalesGPT(Chain, BaseModel):
                         conversation_type=self.conversation_type,
                     )
                     
-                    # document_id = str(uuid.uuid4())    
+                    document_id = str(uuid.uuid4())    
                     # property_data = {
                     #       "id": document_id,
                     #       "sessionId": document_id,
@@ -215,7 +217,7 @@ class SalesGPT(Chain, BaseModel):
                         conversation_purpose=self.conversation_purpose,
                         conversation_type=self.conversation_type
                     )
-                    # document_id = str(uuid.uuid4())    
+                    document_id = str(uuid.uuid4())    
                     # property_data = {
                     #       "id": document_id,
                     #       "sessionId": document_id,
