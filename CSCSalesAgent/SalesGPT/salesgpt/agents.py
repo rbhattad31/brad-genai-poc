@@ -17,6 +17,23 @@ from salesgpt.prompts import SALES_AGENT_TOOLS_PROMPT
 from salesgpt.stages import CONVERSATION_STAGES
 from salesgpt.templates import CustomPromptTemplateForTools
 from salesgpt.tools import get_tools, setup_knowledge_base
+from langchain.callbacks import get_openai_callback
+
+from azure.cosmos import CosmosClient
+from streamlit.runtime.scriptrunner import add_script_run_ctx
+
+cosmosdb_endpoint = "https://brad-cosmos.documents.azure.com:443/"
+cosmosdb_key = "fTeLgj5bNZKTHJXBVneX3dejw7DA8Qpd0gkjmJm03Woyolyl70lJNtXA1iHmvcDxv9CoNxcCNwuNACDbaMc6Aw=="
+cosmosdb_database_name = "RealEstate"
+cosmosdb_container_name = "UserChatHistory"
+
+client = CosmosClient(cosmosdb_endpoint, cosmosdb_key)
+
+# Get database reference
+database = client.get_database_client(cosmosdb_database_name)
+
+# Get container reference
+container = database.get_container_client(cosmosdb_container_name)
 
 import streamlit as st
 
@@ -157,33 +174,56 @@ class SalesGPT(Chain, BaseModel):
         try:
             if self.use_tools:
                 logger.info('Used Tools Agent Executor')
-                ai_message = self.sales_agent_executor.run(
-                    input="",
-                    conversation_stage=self.current_conversation_stage,
-                    conversation_history="\n".join(self.conversation_history),
-                    salesperson_name=self.salesperson_name,
-                    salesperson_role=self.salesperson_role,
-                    company_name=self.company_name,
-                    company_business=self.company_business,
-                    company_values=self.company_values,
-                    conversation_purpose=self.conversation_purpose,
-                    conversation_type=self.conversation_type,
-                )
+                with get_openai_callback() as cb:
+                    ai_message = self.sales_agent_executor.run(
+                        input="",
+                        conversation_stage=self.current_conversation_stage,
+                        conversation_history="\n".join(self.conversation_history),
+                        salesperson_name=self.salesperson_name,
+                        salesperson_role=self.salesperson_role,
+                        company_name=self.company_name,
+                        company_business=self.company_business,
+                        company_values=self.company_values,
+                        conversation_purpose=self.conversation_purpose,
+                        conversation_type=self.conversation_type,
+                    )
+                    
+                    document_id = str(uuid.uuid4())    
+                    property_data = {
+                          "id": document_id,
+                          "sessionId": document_id,
+                          "prompt": self.conversation_history,
+                          "response": ai_message,
+                          "total_tokens": cb.total_tokens
+                      }
+                      # Insert document into Cosmos DB
+                    container.upsert_item(body=property_data)
 
             else:
                 # else
                 logger.info('Used Tools Chain Executor')
-                ai_message = self.sales_conversation_utterance_chain.run(
-                    conversation_stage=self.current_conversation_stage,
-                    conversation_history="\n".join(self.conversation_history),
-                    salesperson_name=self.salesperson_name,
-                    salesperson_role=self.salesperson_role,
-                    company_name=self.company_name,
-                    company_business=self.company_business,
-                    company_values=self.company_values,
-                    conversation_purpose=self.conversation_purpose,
-                    conversation_type=self.conversation_type
-                )
+                with get_openai_callback() as cb:
+                    ai_message = self.sales_conversation_utterance_chain.run(
+                        conversation_stage=self.current_conversation_stage,
+                        conversation_history="\n".join(self.conversation_history),
+                        salesperson_name=self.salesperson_name,
+                        salesperson_role=self.salesperson_role,
+                        company_name=self.company_name,
+                        company_business=self.company_business,
+                        company_values=self.company_values,
+                        conversation_purpose=self.conversation_purpose,
+                        conversation_type=self.conversation_type
+                    )
+                    document_id = str(uuid.uuid4())    
+                    property_data = {
+                          "id": document_id,
+                          "sessionId": document_id,
+                          "prompt": self.conversation_history,
+                          "response": response,
+                          "total_tokens": cb.total_tokens
+                      }
+                      # Insert document into Cosmos DB
+                    container.upsert_item(body=property_data)
         except Exception as e:
             ai_message=""
             logger.error('Chain Execute Error: ' + str(e))
