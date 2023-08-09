@@ -156,11 +156,10 @@ def handle_userinput(user_question):
             st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
 
 
-def main():
+def main_1():
 
     try:
-        st.set_page_config(page_title="Chat with multiple PDFs",
-                           page_icon=":books:")
+        st.set_page_config(page_title="Chat with multiple PDFs", page_icon=":books:")
         st.write(css, unsafe_allow_html=True)
 
         # Check the conversation exist in session and intialize it.
@@ -210,7 +209,8 @@ def main():
                     pass
                 else:
                     st.markdown('<div style="text-align: justify;">' + summ_ans + '</div>',
-                                    unsafe_allow_html=True)
+                                unsafe_allow_html=True)
+
     except Pdferror as pd:
         st.header(pd)
     except Exception as e:
@@ -218,5 +218,5 @@ def main():
         st.header("Error occurred please try again after sometime!!!")
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main_1()
