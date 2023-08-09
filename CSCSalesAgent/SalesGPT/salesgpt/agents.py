@@ -189,16 +189,16 @@ class SalesGPT(Chain, BaseModel):
                         conversation_type=self.conversation_type,
                     )
                     
-                    document_id = str(uuid.uuid4())    
-                    property_data = {
-                          "id": document_id,
-                          "sessionId": document_id,
-                          "prompt": self.conversation_history,
-                          "response": ai_message,
-                          "total_tokens": cb.total_tokens
-                      }
-                      # Insert document into Cosmos DB
-                    container.upsert_item(body=property_data)
+                    # document_id = str(uuid.uuid4())    
+                    # property_data = {
+                    #       "id": document_id,
+                    #       "sessionId": document_id,
+                    #       "prompt": self.conversation_history,
+                    #       "response": ai_message,
+                    #       "total_tokens": cb.total_tokens
+                    #   }
+                    #   # Insert document into Cosmos DB
+                    # container.upsert_item(body=property_data)
 
             else:
                 # else
@@ -215,16 +215,16 @@ class SalesGPT(Chain, BaseModel):
                         conversation_purpose=self.conversation_purpose,
                         conversation_type=self.conversation_type
                     )
-                    document_id = str(uuid.uuid4())    
-                    property_data = {
-                          "id": document_id,
-                          "sessionId": document_id,
-                          "prompt": self.conversation_history,
-                          "response": response,
-                          "total_tokens": cb.total_tokens
-                      }
-                      # Insert document into Cosmos DB
-                    container.upsert_item(body=property_data)
+                    # document_id = str(uuid.uuid4())    
+                    # property_data = {
+                    #       "id": document_id,
+                    #       "sessionId": document_id,
+                    #       "prompt": self.conversation_history,
+                    #       "response": response,
+                    #       "total_tokens": cb.total_tokens
+                    #   }
+                    #   # Insert document into Cosmos DB
+                    # container.upsert_item(body=property_data)
         except Exception as e:
             ai_message=""
             logger.error('Chain Execute Error: ' + str(e))
