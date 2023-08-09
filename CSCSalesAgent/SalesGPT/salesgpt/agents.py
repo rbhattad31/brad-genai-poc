@@ -23,7 +23,7 @@ from azure.cosmos import CosmosClient
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 cosmosdb_endpoint = "https://brad-cosmos.documents.azure.com:443/"
-cosmosdb_key = "fTeLgj5bNZKTHJXBVneX3dejw7DA8Qpd0gkjmJm03Woyolyl70lJNtXA1iHmvcDxv9CoNxcCNwuNACDbaMc6Aw=="
+cosmosdb_key = st.secrets["cosmosdb_key"]
 cosmosdb_database_name = "RealEstate"
 cosmosdb_container_name = "UserChatHistory"
 
