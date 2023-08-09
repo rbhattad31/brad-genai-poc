@@ -13,3 +13,4 @@ loguru
 lark
 faiss-gpu
 google-search-results
+azure-cosmos
