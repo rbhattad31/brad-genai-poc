@@ -129,7 +129,7 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test", chunk_size=1)
+    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test", chunk_size=1, request_timeout=10)
     # embeddings = OpenAIEmbeddings()
     # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
@@ -137,7 +137,7 @@ def get_vectorstore(text_chunks):
 
 
 def get_conversation_chain(vectorstore):
-    llm = AzureChatOpenAI(deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
+    llm = AzureChatOpenAI(deployment_name="bradsol-openai-test", model_name="gpt-35-turbo", request_timeout=10)
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=vectorstore.as_retriever(),
                                                                memory=memory)
@@ -161,21 +161,15 @@ def main_1():
     try:
         st.set_page_config(page_title="Chat with multiple PDFs", page_icon=":books:")
         st.write(css, unsafe_allow_html=True)
+        st.header("Chat with multiple PDFs :books:")
 
-        # Check the conversation exist in session and intialize it.
+        # Check the conversation exist in session and initialize it.
         if "conversation" not in st.session_state:
             st.session_state.conversation = None
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = None
         if "summary_ans" not in st.session_state:
             st.session_state.summary_ans = None
-
-        st.header("Chat with multiple PDFs :books:")
-
-        if "conversation" in st.session_state:
-            user_question = st.chat_input("Say something")
-            if user_question:
-                handle_userinput(user_question)
 
         with st.sidebar:
             st.subheader("Your documents")
@@ -198,18 +192,24 @@ def main_1():
                     # create conversation chain - st.session_state[Holds the memmory until session ends]
                     st.session_state.conversation = get_conversation_chain(vectorstore)
                     summary = get_conversation_chain(vectorstore)
-                    summary_ans = summary({'question': "Summary of the data"})
+                    summary_ans = summary({'question': "Summary of the data and sample questions to ask regards data with number format in 3 lines"})
                     st.session_state.summary_ans = summary_ans["answer"]
-                    st.write("Summary:\n")
+                    # st.write("Summary:\n")
                     # st.markdown('<div style="text-align: justify;">' + st.session_state.summary_ans + '</div>',unsafe_allow_html=True)
                     print("File uploaded Successfully")
-            if "summary_ans" in st.session_state:
-                summ_ans = st.session_state.summary_ans
-                if summ_ans is None or summ_ans == "":
-                    pass
-                else:
-                    st.markdown('<div style="text-align: justify;">' + summ_ans + '</div>',
-                                unsafe_allow_html=True)
+        if "summary_ans" in st.session_state:
+            summ_ans = st.session_state.summary_ans
+            if summ_ans is None or summ_ans == "":
+                pass
+            else:
+                st.header("Summary:\n")
+                # st.markdown('<div style=float:right; width: 30%; padding-left: 20px;style=text-align: justify;>'+ summ_ans +'</div>',unsafe_allow_html=True)
+                st.markdown('<div style="text-align: justify;">' + summ_ans + '</div>', unsafe_allow_html=True)
+
+        if "conversation" in st.session_state:
+            user_question = st.chat_input("Say something")
+            if user_question:
+                handle_userinput(user_question)
 
     except Pdferror as pd:
         st.header(pd)
@@ -218,5 +218,5 @@ def main_1():
         st.header("Error occurred please try again after sometime!!!")
 
 
-# if __name__ == '__main__':
-#     main_1()
+if __name__ == '__main__':
+    main_1()
