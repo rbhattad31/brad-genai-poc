@@ -4,5 +4,7 @@ openai
 tiktoken
 faiss-cpu
 pdf2image
-pytesseract
 poppler-0.68.0
+shutil
+pytesseract
+pyautogui
