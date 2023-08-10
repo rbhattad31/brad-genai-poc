@@ -1,6 +1,5 @@
 import streamlit as st
 import MultiplePDF_Chat
-from htmlTemplates import css
 import pyautogui
 import os
 
@@ -31,7 +30,6 @@ def login_page():
 
         else:
             st.write("Invalid Credits")
-
 
 def pdf_page():
     MultiplePDF_Chat.main_1()
