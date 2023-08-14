@@ -24,6 +24,7 @@ from typing import Union
 import streamlit as st
 from langchain.document_loaders import UnstructuredExcelLoader
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_loaders import TextLoader
 from loguru import logger
 
 # Azure Details:
