@@ -151,7 +151,7 @@ def setup_knowledge_base(product_catalog: str = None):
     """
     We assume that the product catalog is simply a text string.
     """
-    llm = AzureOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",request_timeout=10)
+    llm = AzureOpenAI(temperature=0.9, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",request_timeout=10)
     #embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test")
     db = FAISS.load_local("faiss_index1", embeddings)
@@ -193,7 +193,7 @@ def get_tools(product_catalog):
         Tool(
             name="ProductSearch",
             func=knowledge_base.run,
-            description="useful for when you need to answer questions about flats,properties,villas information",
+            description="useful for when you need to answer questions about Property Type,Price,City,Community,CommunityProperty Name,Amenities,Size ,Bedrooms   ",
         )
     ]
 
