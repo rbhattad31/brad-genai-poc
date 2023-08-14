@@ -193,7 +193,7 @@ def get_tools(product_catalog):
         Tool(
             name="ProductSearch",
             func=knowledge_base.run,
-            description="useful for when you need to answer questions about product information",
+            description="useful for when you need to answer questions about flats,properties,villas information",
         )
     ]
 
