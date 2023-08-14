@@ -4,7 +4,7 @@ import os
 import re
 
 import langchain
-from langchain import LLMChain, PromptTemplate
+from langchain import FAISS,LLMChain, PromptTemplate
 from langchain.llms import BaseLLM
 from pydantic import BaseModel, Field
 from langchain.chains.base import Chain
