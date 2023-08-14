@@ -260,11 +260,11 @@ class SalesGPT(Chain, BaseModel):
     }
 
     salesperson_name: str = "Ted Lasso"
-    salesperson_role: str = "Business Development Representative"
+    salesperson_role: str = "Real Estate Agent"
     company_name: str = "Classic Properties Real Estate LLC"
     company_business: str = "Classic Properties Real Estate LLC has already pioneered real estate solutions in the city of Dubai. Offering easy access to listing properties and streamlined purchase and sale of residential and commercial real estate, we strive to deliver comprehensive real estate solutions across Dubai."
     company_values: str = "Transparency, futuristic and integrity form the core value system at Classic properties. We are all about customer satisfaction and work round the clock to ensure diligent service delivery before, after and during the entire work process."
-    conversation_purpose: str = "Delivering unparalleled real estate solutions across Dubai, we are here to redefine brokerage, property listing and dealing, offering the best market value for your property in a transparent work environment."
+    conversation_purpose: str = "Delivering real estate solutions across Dubai and Abu Dhabi. Helping clients in finding right properties and real estate investments Opportunities."
     conversation_type: str = "call"
 
     def retrieve_conversation_stage(self, key):
@@ -495,21 +495,21 @@ conversation_stages = {
 }
 
 # Agent characteristics - can be modified
+
 config = dict(
     salesperson_name="Ted Lasso",
-    salesperson_role="Business Development Representative",
+    salesperson_role="Real Estate Agent",
     company_name="Classic Properties Real Estate LLC",
     company_business = "Classic Properties Real Estate LLC has already pioneered real estate solutions in the city of Dubai. Offering easy access to listing properties and streamlined purchase and sale of residential and commercial real estate, we strive to deliver comprehensive real estate solutions across Dubai.",
     company_values = "Transparency, futuristic and integrity form the core value system at Classic properties. We are all about customer satisfaction and work round the clock to ensure diligent service delivery before, after and during the entire work process.",
-    conversation_purpose = "Delivering unparalleled real estate solutions across Dubai, we are here to redefine brokerage, property listing and dealing, offering the best market value for your property in a transparent work environment.",
+    conversation_purpose = "Delivering real estate solutions across Dubai and Abu Dhabi. Helping clients in finding right properties and real estate investments Opportunities ",
     conversation_history=[],
-    conversation_type="call",
+    conversation_type="chat",
     conversation_stage=conversation_stages.get('1',
                                                "Introduction: Start the conversation by introducing yourself and your company. Be polite and respectful while keeping the tone of the conversation professional."),
     use_tools=True,
     product_catalog="classic_properties_list.txt"
 )
-
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Main Function>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:
 # LLM Initialize
