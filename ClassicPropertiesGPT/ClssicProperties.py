@@ -129,28 +129,56 @@ class SalesConversationChain(LLMChain):
         )
         return cls(prompt=prompt, llm=llm, verbose=verbose)
 
+def add_knowledge_base_products_to_cache(product_catalog: str = None):
+    """
+        We assume that the product catalog is simply a text string.
+        """
+    # load the document and split it into chunks
+    logger.info("Inside Add Knowledge Base")
+    loader = TextLoader(product_catalog,encoding='utf8')
+    documents = loader.load()
+    text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=0)
+    docs = text_splitter.split_documents(documents)
+    #embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test",chunk_size=1)
+    db = FAISS.from_documents(docs, embeddings)
+    db.save_local("faiss_index1")
 
-# Set up knowledge base
 def setup_knowledge_base(product_catalog: str = None):
+    print("Inside Set Up Knowledge Base")
     """
-    We assume that the product knowledge base is Excel File.
+    We assume that the product catalog is simply a text string.
     """
-    with open(product_catalog, "r") as f:
-        product_catalog = f.read()
-
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    texts = text_splitter.split_text(product_catalog)
-    #print(texts)
-
-    llm = AzureOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
-    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test",chunk_size = 1)
-    # docsearch = Chroma.from_texts(texts, embeddings, collection_name="product-knowledge-base")
-    docsearch = langchain.FAISS.from_texts(texts=texts, embedding=embeddings)
-
+    llm = AzureOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
+    #embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test")
+    db = FAISS.load_local("faiss_index1", embeddings)
     knowledge_base = RetrievalQA.from_chain_type(
-        llm=llm, chain_type="stuff", retriever=docsearch.as_retriever()
+        llm=llm, chain_type="stuff", retriever=db.as_retriever()
     )
     return knowledge_base
+   
+# Set up knowledge base
+# def setup_knowledge_base(product_catalog: str = None):
+#     """
+#     We assume that the product knowledge base is Excel File.
+#     """
+#     with open(product_catalog, "r") as f:
+#         product_catalog = f.read()
+
+#     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+#     texts = text_splitter.split_text(product_catalog)
+#     #print(texts)
+
+#     llm = AzureOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
+#     embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test",chunk_size = 1)
+#     # docsearch = Chroma.from_texts(texts, embeddings, collection_name="product-knowledge-base")
+#     docsearch = langchain.FAISS.from_texts(texts=texts, embedding=embeddings)
+
+#     knowledge_base = RetrievalQA.from_chain_type(
+#         llm=llm, chain_type="stuff", retriever=docsearch.as_retriever()
+#     )
+#     return knowledge_base
 
 
 def get_tools(product_catalog):
@@ -510,7 +538,7 @@ config = dict(
     use_tools=True,
     product_catalog="classic_properties_list.txt"
 )
-
+add_knowledge_base_products_to_cache("classic_properties_list.txt")
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Main Function>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:
 # LLM Initialize
 def main():
@@ -531,6 +559,7 @@ def main():
         st.session_state.chat_history.append(human)
         st.session_state.sales_agent.human_step(human)
 
+    
     st.session_state.sales_agent.determine_conversation_stage()
     st.session_state.sales_agent.step()
     print("\n")
