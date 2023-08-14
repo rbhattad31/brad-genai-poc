@@ -540,7 +540,6 @@ config = dict(
     use_tools=True,
     product_catalog="classic_properties_list.txt"
 )
-#add_knowledge_base_products_to_cache("classic_properties_list.txt")
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Main Function>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:
 # LLM Initialize
 def main():
