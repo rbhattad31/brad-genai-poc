@@ -24,6 +24,7 @@ from typing import Union
 import streamlit as st
 from langchain.document_loaders import UnstructuredExcelLoader
 from langchain.text_splitter import CharacterTextSplitter
+from loguru import logger
 
 # Azure Details:
 if os.getenv("OPENAI_API_TYPE"):
