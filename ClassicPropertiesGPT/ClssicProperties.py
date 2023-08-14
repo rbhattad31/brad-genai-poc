@@ -151,7 +151,7 @@ def setup_knowledge_base(product_catalog: str = None):
     """
     We assume that the product catalog is simply a text string.
     """
-    llm = AzureOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
+    llm = AzureOpenAI(temperature=0.2, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",request_timeout=10)
     #embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test")
     db = FAISS.load_local("faiss_index1", embeddings)
@@ -550,7 +550,7 @@ def main():
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
-        llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo")
+        llm = AzureChatOpenAI(temperature=0.6, deployment_name="bradsol-openai-test", model_name="gpt-35-turbo",request_timeout=10)
         st.session_state.sales_agent = SalesGPT.from_llm(llm, verbose=False, **config)
         # init sales agent
         st.session_state.sales_agent.seed_agent()
