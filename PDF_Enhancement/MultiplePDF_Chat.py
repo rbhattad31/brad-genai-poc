@@ -83,10 +83,10 @@ def get_text_from_any_pdf(pdf_file):
 
 
 def get_pdf_text(pdf_docs):
-    text = ""
-    for pdf in pdf_docs:
-        result = ""
-        print(pdf.name)
+    result = {}
+    pdf_names = []
+    for i, pdf in enumerate(pdf_docs):
+        pdf_names.insert(i, pdf.name)
         tempTuple = os.path.splitext(pdf.name)
         pdf_name = tempTuple[0]
         Temp_Directory = os.path.join('Uploaded Files', pdf_name)
@@ -98,49 +98,58 @@ def get_pdf_text(pdf_docs):
 
         file_size = os.path.getsize(pdf_path)
         size = (file_size / 1024)
+        # print(size)
 
         if size > 20 * 1024:
-            st.write("File size should be less than 20 MB")
-
-            def remove_directory(directory_path):
-                shutil.rmtree(directory_path)
-            remove_directory(Temp_Directory)
-            raise Pdferror("Uploaded File Size Limit Exceeded")
-
+            st.write("File size Exceeded Limit")
+            print("File Size Huge")
+            os.remove(pdf_path)
+            os.rmdir(Temp_Directory)
+            raise Pdferror("File size Exceeded Limit")
+        else:
+            print("File Size is less")
+        text = ''
         for page in pdf_reader.pages:
-            result += page.extract_text()
+            text += page.extract_text()
+        result[i] = text
 
-        if result is None or result == "":
-            result += get_text_from_any_pdf(pdf_path)
-        print(result)
-        text += result
-    return text
+        if result[i] is None or result[i] == "":
+            result[i] = get_text_from_any_pdf(pdf_path)
+    return result, pdf_names
 
 
-def get_text_chunks(text):
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=2000,
-        chunk_overlap=200,
-        length_function=len
-    )
-    chunks = text_splitter.split_text(text)
+def get_text_chunks(text_dict, pdf_names):
+    text_splitter = CharacterTextSplitter(separator="\n", chunk_size=2000, chunk_overlap=200, length_function=len)
+    chunks = {}
+    for i in range(len(text_dict)):
+        text = text_dict[i]
+        with open(str(i)+'.txt', 'w',encoding='utf-8') as file:
+            text_to_write = text
+            file.write(text_to_write)
+        chunks[pdf_names[i]] = text_splitter.split_text(text)
     return chunks
 
 
-def get_vectorstore(text_chunks):
+def get_vectorstore(text_chunks, pdf_names):
     embeddings = OpenAIEmbeddings(deployment="bradsol-embedding-test", chunk_size=1, request_timeout=10)
-    # embeddings = OpenAIEmbeddings()
-    # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+    llm = AzureChatOpenAI(deployment_name="bradsol-openai-test", model_name="gpt-35-turbo", request_timeout=10)
+    for i in range(len(text_chunks)):
+        text = text_chunks[pdf_names[i]]
+        vectorstore_temp = FAISS.from_texts(texts=text, embedding=embeddings)
+        if i > 0:
+            print(i)
+            vectorstore.merge_from(vectorstore_temp)
+        else:
+            print(i)
+            vectorstore = vectorstore_temp
+    print(vectorstore)
     return vectorstore
 
 
 def get_conversation_chain(vectorstore):
     llm = AzureChatOpenAI(deployment_name="bradsol-openai-test", model_name="gpt-35-turbo", request_timeout=10)
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=vectorstore.as_retriever(),
-                                                               memory=memory)
+    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=vectorstore.as_retriever(), memory=memory)
     return conversation_chain
 
 
@@ -184,15 +193,15 @@ def main_1():
                     raw_text = get_pdf_text(pdf_docs)
 
                     # get the text chunks
-                    text_chunks = get_text_chunks(raw_text)
+                    text_chunks = get_text_chunks(raw_text[0], raw_text[1])
 
                     # create vector store
-                    vectorstore = get_vectorstore(text_chunks)
+                    vectorstore = get_vectorstore(text_chunks, raw_text[1])
 
                     # create conversation chain - st.session_state[Holds the memmory until session ends]
                     st.session_state.conversation = get_conversation_chain(vectorstore)
                     summary = get_conversation_chain(vectorstore)
-                    summary_ans = summary({'question': "Summary of the data and sample questions to ask regards data with number format in 3 lines"})
+                    summary_ans = summary({'question': "Summary of the data 2 lines and give 3 sample questions to ask in number format"})
                     st.session_state.summary_ans = summary_ans["answer"]
                     # st.write("Summary:\n")
                     # st.markdown('<div style="text-align: justify;">' + st.session_state.summary_ans + '</div>',unsafe_allow_html=True)
